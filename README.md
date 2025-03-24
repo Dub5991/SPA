@@ -36,6 +36,14 @@ To get started with TypeScript, refer to the [React + TypeScript template](https
 3. Start the development server with `npm run dev` or `yarn dev`.
 4. Build for production using `npm run build` or `yarn build`.
 
+## Contact
+
+For any questions, suggestions, or feedback, feel free to reach out:
+
+- **GitHub**: [Dub5991](https://github.com/Dub5991)
+- **Email**: [Snellingsd@icloud.com](mailto:Snellingsd@icloud.com)
+- **LinkedIn**: [Dustin Snellings](https://www.linkedin.com/in/dustin-snellings-8385ba274/)
+
 ## Contributing
 
 Contributions are welcome! Feel free to open issues or submit pull requests to improve this project.
