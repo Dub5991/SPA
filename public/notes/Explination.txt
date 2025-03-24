@@ -1,0 +1,566 @@
+1. Initialize the Project:
+Create a folder where the project will be created
+Open your terminal in that directory
+Run npx create-vite spa-router --template react to create a new React project using Vite.
+Navigate into your project directory: cd spa-router.
+Install the necessary dependencies by running npm install
+Install react-router-dom to handle the navigation and routes by running: npm install react-router-dom
+Install Axios to make the API calls to JSONPlaceholder by running: npm install axios
+
+2. Verify Installation:
+Start the development server with npm run dev.
+Open your browser and navigate to http://localhost:5173. You should see the React welcome page.
+
+3. Open VS Code and Create Component Files:
+Open the spa-router folder inside of VS Code
+In the src directory, create a new folder named components.  
+In the components directory, create the five following components and don't put in any code in them yet:
+
+HomePage.jsx
+NavBar.jsx
+NotFound.jsx
+Users.jsx
+UserTodos.jsx
+
+## Adding BrowserRouter to main.jsx 
+open main.jsx
+Add the import of BrowserRouter  
+Put BrowserRouter inside of the createRoot.render() function
+Place App is inside of BrowserRouter
+
+// src/main.jsx
+
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom';
+import App from './App.jsx'
+import './index.css'
+
+createRoot(document.getElementById('root')).render(
+  <StrictMode>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>    
+  </StrictMode>,
+)
+
+Explanation:
+1. Allow App to access BrowserRouter:
+    We need to wrap the App component inside of BrowserRouter so all of React Router's functionalities can be accessed and used inside of the application.  
+
+Create Home Route inside of App.jsx  
+Let's start with our Home Route (Home Page).  This will be what shows up when the user goes to http://localhost:5173 Erase everything in App and add this: 
+import { Routes, Route } from 'react-router-dom';
+import HomePage from './components/HomePage';
+
+function App() {
+  return (
+    <>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+      </Routes>
+    </>
+  );
+}
+
+export default App;
+
+Explanation:
+
+1. Routes/HomePage import:
+- We have to import Routes and Route, from react-router-dom in order to use them.  Same with HomePage 
+
+2. Defining Routes and Route
+- The Routes component, contains all the individual Route components.  It defines when a group of Route components are about to be created
+- Inside of the Route component, there's a path attribute that defines the URL this Route will be responsible for.
+    -In this case, the path is / which is the home route, or more specifically, when the user goes to: http://localhost:5173/
+-The element attribute defines what component will be shown when the defined path is accessed.
+    -In this case, when the user goes to: http://localhost:5173/ it will display the HomePage component
+
+Create the HomePage component  
+Now that App is trying to display the HomePage component, let's make it.  Open up HomePage.jsx and add this code to it:
+
+// src/components/HomePage.jsx
+
+function HomePage() {
+    return (
+      <div>
+        <h2>Hi, welcome to the 🏠 page!</h2>
+        <p>This app will let you see all of the very important fake users JSONPlaceholder gives us.</p>
+      </div>
+    );
+  }
+  
+  export default HomePage;
+Explanation:
+Welcome message:
+There's nothing new here to talk about.  It's just a welcome message letting us know we are on the home page
+
+Test it!
+Go to http://localhost:5173/ and you should be able to see the home page
+
+
+Create the Users component  
+Now that we have a home page let's create the component that will load a list of users from JSONPlaceholder.  Open up Users.jsx and add this code to it:
+
+// src/components/Users.js
+
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import axios from 'axios';
+
+function Users() {
+  const [users, setUsers] = useState([]);     // State to store users
+  const [loading, setLoading] = useState(true); // Loading state
+  const [error, setError] = useState(null);    // Error state
+
+  // useEffect to fetch users when component mounts
+  useEffect(() => {
+    axios.get('https://jsonplaceholder.typicode.com/users')
+      .then(response => {
+        setUsers(response.data);
+        setLoading(false);
+      })
+      .catch(error => {
+        setError(`Failed to fetch users: ${error.message}`);
+        setLoading(false);
+      });
+      
+  }, []); // Empty dependency array ensures this runs only once
+
+  if (loading) return <p>Loading users...</p>;
+  if (error) return <p>{error}</p>;
+
+  return (
+    <div>
+      <h2>User List</h2>
+      <ul>
+        {users.map(user => (
+          <li key={user.id}>
+            <p><b>Name:</b> {user.name}</p>
+            <p><b>Email:</b> {user.email}</p>
+            <p><b>Phone:</b> {user.phone}</p>
+            <Link to={`/user-todos/${user.id}`}>Todo List</Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+export default Users;
+Explanation:
+Imports
+We import the usual useState and useEffect but this time we import Link from react-router-dom and axios 
+Link will allow us to create a link that will take us to a defined path
+Axios will allow us to make HTTP requests to JSONPlaceholder just like fetch did
+
+State Variables
+users - this is where we will store all the users that come back from the JSONPlaceholder API call
+loading - while this is true we will use this to show a message letting the user know the API call is happening
+error - this will be used to show any errors that happen during the API call
+
+useEffect API call using axios
+useEffect has an empty dependency array so this will only run once when the component is mounted
+axios.get() is Axios's way of doing a GET request.
+The first parameter we pass is the URL of the HTTP Request.  In this case we are getting all the users from JSONPlaceholder
+Next, axios wants us to attach a .then() which will receive the returned data into response
+When then setUsers to response.data which is the list of users
+The reason it's response.data is because Axios puts the returned users inside of a data property automatically for us
+Notice how we didn't have to use .json() on the returned data like we have to with fetch.  Axios has that built in.  It does the conversion for us which is nice.
+The we setLoading to false so the loading message will disappear and the JSX returned at the bottom of the page will show up
+If there are any errors during the HTTP Request, it will setError to the error message and setLoading to false so the value of error can display on the page
+
+if loading and error statements
+If loading is true it will return and display the "Loading users..." message.  
+The second loading is false, it will stop showing that message and display the returned JSX below
+If error has a value, it will return and display the error message defined in the catch block of the axios call.
+
+Returned JSX
+Most of this is review.  We have a header.  Then we create a ul by looping through the users state variable that was set in the axios call using map.
+We access the user's ids, names, emails, and phone numbers, using the temporary loop variable user
+<li key={user.id} is used so React can individually keep track of each  li being created for future rendering
+Then for each user, we create a link that says "Todo List" using React Router's Link 
+Each individual Link has a to attribute that defines what path the user will go to when the link is clicked
+These Link components will take us to the path: /user-todos/${user.id}
+${user.id}  is being pulled from each individual user.  
+To illustrate what is going on, let's say a user has an ID of 13.  This would create a link in this user's section that has a to attribute that equals /user-todos/13
+Eventually, these links will take us to the user's own personal todo list 
+NOTE: These individual todo lists will be rendered in the UserTodos.jsx component, which we haven't built out yet
+NOTE: The /user-todos/${user.id} path hasn't been defined in App yet either, so the Link components won't work until we do so.
+
+
+Add  Users to App 
+Now that we've finished the Users component, let's test it out by adding a Route that will contain a path that will display the correct element (Users).  Add this code to App (the added code is marked by comments).
+
+import { Routes, Route } from 'react-router-dom';
+import HomePage from './components/HomePage';
+/***** Added code starts here *******/
+import Users from './components/Users';
+/***** Added code stops here *******/
+
+function App() {
+  return (
+    <>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+				{/******* Added code starts here *******/}
+				<Route path="/users" element={<Users />} />
+				{/******* Added code stops here *******/}
+
+      </Routes>
+    </>
+  );
+}
+
+export default App;
+Explanation:
+Import and Route
+We import the Users component so we can use it
+We setup a new Route that says if you go to the /users path it will display the Users component that we just created.
+
+Test it!
+See if it works by going to http://localhost:5173/users and we should see a list of the users from JSONPlaceholder
+NOTE: the "Todo List" Link for each user will not work yet
+
+
+Getting the User's ID from the URL
+Inside of Users.jsx , using React Router's Link , we created the /user-todos/${user.id} to path that needs to be handled.  Let's stay in App and add this code: (the added code is marked by comments).
+
+import { Routes, Route } from 'react-router-dom';
+import HomePage from './components/HomePage';
+import Users from './components/Users';
+/***** Added code starts here *******/
+import UserTodos from './components/UserTodos';
+/***** Added code stops here *******/
+
+
+function App() {
+  return (
+    <>
+      <Routes>
+        <Route path="/" element={<HomePage />} />				
+				<Route path="/users" element={<Users />} />
+				{/******* Added code starts here *******/}
+				<Route path="/user-todos/:userId" element={<UserTodos />} />
+				{/******* Added code stops here *******/}
+      </Routes>
+    </>
+  );
+}
+
+export default App;
+Explanation:
+Import and Route
+We import the UserTodos component so we can use it.  This will allow us to show an individual user's todo list pulled from JSONPlaceholder
+We setup a new Route 
+The element that will show if this Route is activated is UserTodos
+The path of that Route is /user-todos/:userId
+:userId is a route parameter used to pull values from the URL that activated this Route.  
+In this case :userId will create a route parameter, which will function much like a variable, called userId and set it equal to the value that was in the same location :userId was in the URL
+For example: if I'm on the Users component, and I click on the "Todo List" Link of a user with the ID of 7, it will take me to /user-todos/7 because that is what the to attribute defines.
+The /user-todos/:userId Route defined in App will activate and store the number 7 inside of the route parameter userId
+We will then be able to access userId on the element the Route displays.  
+In our case, that will be in the  UserTodos component where we will use userId to display that user's todo list
+
+
+Displaying the User's Todo List
+Now that we have a Route that is trying to display UserTodos when the "Todo List" Link is clicked on, let's create that component.  Inside of UserTodos.jsx put this code:
+
+// src/components/UserTodos.js
+
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import axios from 'axios';
+
+function UserTodos() {
+    const { userId } = useParams();          // Get the userId from URL parameters
+    const [todos, setTodos] = useState([]);   // State to store the user's todos
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    // Fetch user and todos for the specific userId
+    useEffect(() => {
+        const fetchUserAndTodos = async () => {
+            try {
+                const userResponse = await axios.get(`https://jsonplaceholder.typicode.com/users/${userId}`);
+                setUser(userResponse.data);
+    
+                const todosResponse = await axios.get(`https://jsonplaceholder.typicode.com/users/${userId}/todos`);
+                setTodos(todosResponse.data);
+            
+            } catch (error) {
+                setError(`Failed to fetch: ${error.message}`);
+            
+            } finally {
+                setLoading(false);
+            }
+        };
+    
+        if (userId) {
+            fetchUserAndTodos();
+        }
+    }, [userId]); // Refetch todos if userId changes
+
+    if (loading) return <p>Loading User Todos...</p>;
+    if (error) return <p>{error}</p>;
+
+    return (
+        <div>            
+            <h2>Todos for: {user.name}</h2>
+            <ul>
+                {todos.map(todo => (
+                    <li key={todo.id}>
+                        <p><b>Title:</b> {todo.title}</p>
+                        <p><b>Completed:</b> {todo.completed ? "✅" : "❌"}</p>
+                    </li>
+                ))}
+            </ul>
+        </div>
+    );
+}
+
+export default UserTodos;
+Explanation:
+Imports
+We import the usual useState and useEffect and axios but this time we import useParams from react-router-dom
+useParams will allow us to pull the value of the route parameter userId that we setup in App
+The value of the route parameter will be stored in an object created by react-router-dom
+
+Variables and State Variables
+userId - we destructure userId from the object stored in useParams()
+Remember: when we destructure this object, it goes inside looking for a key named whatever is defined on the left hand side of the statement.  In our case { userId }
+If it finds the key userId in the object given to us by useParams() it will create a variable named userId (same name as the key) and set the value equal to it.
+Now that we have the user's ID we will be able to make API calls that are specifically for that individual user
+todos - this will hold all the todos that come back from the JSONPlaceholder API call
+user - this will hold the user that comes back from the JSONPlaceholder API call
+loading - while this is true we will use this to show a message letting the user know the API call is happening
+error - this will be used to show any errors that happen during the API call
+
+useEffect()
+The useEffect has userId in it's dependency array this time
+What this means is if the value of userId changes while this component is showing, it will automatically run everything that is inside of useEffect again (the API calls)
+
+fetchUserAndTodos Request - this request gets the specific user and their todos using the ID we pulled from useParams()
+We are storing an async anonymous function into fetchUserAndTodos that performs two Axios requests using async/await instead of .then()
+We run the two axios.get() requests which use the variable userId which was destructured from useParams()
+Then we use setUser and setTodos after their respective API calls, to store the returning user's data in the state variable user and all their todos in the state variable todos
+If there's an error in either of those API calls we will catch it and store it in the state variable error which will then print the error to the page
+The finally block always runs after the try/catch block and it setLoading to false to get rid of the loading message
+
+if userId statement in useEffect
+Because of the way React renders things, there might be times when userId doesn't have a value but the UserTodos component renders anyway making the API calls
+This would cause errors when the returned JSX tries to access user.name todo.title etc.
+To prevent the API calls from happening before userId has been set, we set up this if statement to only run the API calls in fetchUserAndTodos if userId has a value 
+And remember, because userId is in the dependency array of useEffect the second userId has a value placed in it, it will run the all the code in the useEffect block (the API calls) 
+
+if loading and error statements
+If loading is true it will return and display the "Loading User Todos..." message.  
+The second loading is false, it will stop showing that message and display the returned JSX below
+If error has a value, it will return and display the error message defined in the catch block of the Axios call.
+
+Returned JSX
+Most of this should be review as well
+We print out the name using the state variable user so we know who's todos these are.  We got the user from fetchUser API call
+We map through the state variable todos that contains the returned data we got from the fetchTodos API call
+Inside the map we create an ul that displays the title and completed properties.  
+We use the ternary operator to show a ✅if completed is true and a ❌ if it is false
+
+Test it!
+Go to http://localhost:5173/users  and then click on any of the "Todo List" links that show up for each user
+You should now see another component rendered that lists their todos and shows whether they've been completed or not.
+
+
+Adding a Navigation Bar
+Notice how it's not very easy to go from the home page to other components.  We have to use the back button on the browser or type the URL directly into the address bar which isn't ordeal.  Let's make a navigation bar so we can easily go from one route to another.  Inside of NavBar.jsx add this code:
+
+// src/components/NavBar.jsx
+
+import { Link } from 'react-router-dom';
+
+function NavBar() {
+    return (
+        <nav>
+            <h1>JSONPlaceholder Users Application</h1>
+            <Link to="/">Home</Link> | 
+            <Link to="/users"> Users</Link>
+        </nav>
+    );
+}
+
+export default NavBar;
+Explanation:
+Imports and Returned JSX
+We bring in Link since that is what will create the links to navigate from one route to another
+We return a nav semantic element with a header
+We use Link to define two simple links:
+A link that will take us to the home / path which will show the HomePage component
+A link that will take us to the /users path which will show the Users component
+
+
+Add NavBar to App
+Now that we have NavBar created let's add it to App.  We want this to be on every component that is rendered so all we have to do is place it outside of Routes (the added code is commented)
+
+import { Routes, Route } from 'react-router-dom';
+import HomePage from './components/HomePage';
+import Users from './components/Users';
+import UserTodos from './components/UserTodos';
+/***** Added code starts here *******/
+import NavBar from './components/NavBar';
+/***** Added code stops here *******/
+
+
+function App() {
+  return (
+    <>
+			{/******* Added code starts here *******/}
+			<NavBar />
+			{/******* Added code stops here *******/}
+      <Routes>
+        <Route path="/" element={<HomePage />} />				
+				<Route path="/users" element={<Users />} />
+				<Route path="/user-todos/:userId" element={<UserTodos />} />
+			</Routes>
+    </>
+  );
+}
+
+export default App;
+Explanation:
+Import and Apply
+We import the NavBar component so we can use it
+We place <NavBar/> outside of Routes so it will be on the page no matter which components are displaying
+
+Test it!
+See if it works by going to http://localhost:5173/ and we should see the navigation bar that will allow us to navigate to the home route and the users route.
+
+
+Add a 404 Not Found Page
+Right now our routes work the way they should but what if your cat jumped on the keyboard and navigated you and your browser to http://localhost:5173/qwerty ?  This would throw a 404 Not Found error.  We want to be able to control what a user sees if they try and access a path in our app that isn't handled.  
+
+We also want it to have a countdown timer that starts at 10 and goes to 0.  When the counter finishes it will send the user back to the home page.  Let's create that page now.  In NotFound.jsx put this code:
+
+// src/components/NotFound.jsx
+
+import { useEffect, useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+
+function NotFound() {
+  const navigate = useNavigate();
+  const [countdown, setCountdown] = useState(10); // Start countdown at 10 seconds
+
+  useEffect(() => {
+    // Set up an interval to decrease the countdown
+    const interval = setInterval(() => {
+      setCountdown((prevCountdown) => prevCountdown - 1);
+    }, 1000);
+
+    // Redirect to home route when countdown reaches zero
+    const timeout = setTimeout(() => {
+      navigate('/'); // Redirect to home
+    }, 10000); // 10 seconds
+
+    // Clean up the interval and timeout on component unmount
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
+  }, [navigate]);
+
+  return (
+    <div>
+      <h2>404 Not Found</h2>
+      <p>I am sorry, that location does not exist 😭</p>
+      <p><b>You will be redirected to the home page in {countdown}...</b></p>
+      <p>Or you can always <Link to="/">go home!</Link></p>
+    </div>
+  );
+}
+
+export default NotFound;
+Explanation:
+Imports
+We do the usual imports except for useNavigate which allows us to send the browser to a different path using code instead of a click from the mouse
+
+Variables and State Variables
+navigate - this variable will store what useNavigate() returns.  This will allow us to send the browser where we want in the code.
+countdown - this state variable is set to 10 by default and we will use it to have a countdown display on the page
+
+useEffect
+This useEffect has navigate in it's dependency array, 
+This means that whenever the value of navigate changes the code inside of useEffect will run again
+
+setInterval - We setup a variable interval and store setInterval in there which runs every 1000 milliseconds (1 second)
+Each second it runs setCountdown which takes the previous value of countdown as a parameter, passes it to an anonymous function, and then minuses 1 from it.  This is what is making the countdown happen each second.
+
+setTimeout - We setup a variable timeout and store setTimeout in there which will run the code inside after 10000 milliseconds (10 second)
+After the 10 seconds are over it will run navigate('/') which will redirect the user to the home page
+
+Cleaning up - after setInterval and setTimeout are done it will then run clearInterval and clearTimeout
+When you use setInterval or setTimeout, they continue to run in the background, even if the component that created them is no longer in use. Running clearInterval and clearTimeout ensures that they stop running when they’re no longer needed.
+
+Returned JSX
+We return a 404 message
+We use the state variable countdown to display the numbers as they have 1 taken away from them each second
+We use Link to let them click on the link to go back to the home route / if they don't want to wait the 10 seconds.
+
+Add NotFound to App
+Now that we have a customer 404 component, let's add it to App: (the added code is commented)
+
+import { Routes, Route } from 'react-router-dom';
+import HomePage from './components/HomePage';
+import Users from './components/Users';
+import UserTodos from './components/UserTodos';
+import NavBar from './components/NavBar';
+/***** Added code starts here *******/
+import NotFound from './components/NotFound';
+/***** Added code stops here *******/
+
+
+function App() {
+  return (
+    <>
+			<NavBar />
+			<Routes>
+        <Route path="/" element={<HomePage />} />				
+				<Route path="/users" element={<Users />} />
+				<Route path="/user-todos/:userId" element={<UserTodos />} />
+				{/******* Added code starts here *******/}
+				<Route path="*" element={<NotFound />} />
+				{/******* Added code stops here *******/}
+			</Routes>
+    </>
+  );
+}
+
+export default App;
+Explanation:
+Import and Apply
+We import the NotFound component so we can use it
+We create a new Route with a path of * and an element of <NotFound /> 
+When this Route path is accessed, it will display the NotFound component
+The path of this Route is * which means anything after the URL of the React app: http://localhost:5173/.  
+Because of this, we need to make sure this Route is at the bottom.  
+React Router checks for matches starting from the top and then goes down.  
+When a path matches, it will display the component
+If we have this Route at the bottom, and if a match isn't found with the routes above, then it will match with the * path and display the NotFound component.  
+If you put this Route at the top, it will never show any of the other Routes because the * path will match with everything so you'll always see the NotFound component.
+Test it!
+See if it works by going to http://localhost:5173/qwerty (or any other URL that isn't handled) and we should see the NotFound component with the 10 second countdown
+🛑 Common React Router Pitfalls and Tips
+Not Using BrowserRouter Correctly
+Pitfall: Forgetting to wrap your routes in <BrowserRouter>, or placing it in the wrong place, can cause errors.
+Tip: Always ensure that <BrowserRouter>wraps around your entire routing logic. Usually, it’s best to place <BrowserRouter> in the top-level main.jsx or the App.jsx file.
+
+Using useNavigate Incorrectly
+Pitfall: Calling useNavigate() outside of an event or in a render can cause unwanted navigation behavior.
+Tip: Always call navigate() (from useNavigate) within an event handler, like onClick or onSubmit. Avoid calling it during the initial render or outside of an effect to avoid triggering unwanted navigations.
+
+Not Handling 404 Pages
+Pitfall: Not setting up a "catch-all" route can lead to an empty page for undefined routes.
+Tip: Define a * route at the end of your Routes list to handle 404 cases. This route will match any path not defined in your routes
+
+Accessing Route Parameters Incorrectly
+Pitfall: Using deprecated props like match to access route parameters instead of useParams can lead to errors.
+Tip: Use useParams to access URL parameters in a functional component:
